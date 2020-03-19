@@ -4,6 +4,7 @@ import { connect } from "./connection.js"
 import cors from "cors"
 import {
   getAllNotes,
+  getAllNotesForUser,
   getNote,
   postNote,
   editNote,
@@ -21,6 +22,7 @@ app.use(cors())
 
 // get all notes
 app.get("/api/notes", getAllNotes)
+app.get("/api/notes/user/:uid", getAllNotesForUser)
 app.get("/api/notes/:id", getNote)
 app.post("/api/notes", postNote)
 app.put("/api/notes/:id", editNote)

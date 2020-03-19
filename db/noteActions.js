@@ -16,6 +16,24 @@ exports.getAllNotes = async (req, res) => {
   }
 }
 
+exports.getAllNotesForUser = async (req, res) => {
+  if (!verifyToken(req.headers.authorization)) {
+    return res.status(500).json({ error: `Authentication was unsuccessful!` })
+  }
+  try {
+    const cursor = await client
+      .db("app_notes")
+      .collection("notes")
+      .find({ userId: req.params.uid })
+      .sort({ createdAt: -1 })
+    const result = await cursor.toArray()
+    console.log(result)
+    return res.json(result)
+  } catch (e) {
+    console.log(`Couldn't get: ${e}`)
+  }
+}
+
 exports.getNote = async (req, res) => {
   try {
     const result = await client
