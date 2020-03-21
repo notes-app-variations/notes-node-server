@@ -40,9 +40,9 @@ exports.getNote = async (req, res) => {
       .db("app_notes")
       .collection("notes")
       .findOne({
-        id: req.id
+        id: req.params.id
       })
-    console.log(`Found a note in the collection with the id '${req.id}':`)
+    console.log(`Found a note in the collection with the id '${req.body.id}':`)
     return res.json(result)
   } catch (e) {
     console.error(`Couldn't get: ${e}`)
@@ -51,10 +51,9 @@ exports.getNote = async (req, res) => {
 }
 
 exports.postNote = async (req, res) => {
-  const note = req.body.note
-  const user = req.body.user
-
-  if (!verifyToken(user.token)) {
+  const note = req.body
+  console.log(req.body)
+  if (!verifyToken(req.headers.authorization)) {
     return res.status(500).json({ error: `Authentication was unsuccessful!` })
   }
 
@@ -62,7 +61,7 @@ exports.postNote = async (req, res) => {
     const result = await client
       .db("app_notes")
       .collection("notes")
-      .insertOne({ ...note, userId: user.uid, createdAt: new Date() })
+      .insertOne({ ...note, createdAt: new Date() })
     console.log(`New note created with the following id: ${result.insertedId}`)
     return res.json(result.insertedId)
   } catch (e) {
@@ -72,11 +71,14 @@ exports.postNote = async (req, res) => {
 }
 
 exports.editNote = async (req, res) => {
+  if (!verifyToken(req.headers.authorization)) {
+    return res.status(500).json({ error: `Authentication was unsuccessful!` })
+  }
   try {
     const result = await client
       .db("app_notes")
       .collection("notes")
-      .updateOne({ id: req.id }, { $set: req.body })
+      .updateOne({ _id: req.params.id }, { $set: req.body })
     return res.json(result.ok)
   } catch (e) {
     console.log(`Couldn't put: ${e}`)
