@@ -1,5 +1,6 @@
 import { client } from "../connection.js"
 import { verifyToken } from "./authActions.js"
+import { ObjectID } from "mongodb"
 
 exports.getAllNotes = async (req, res) => {
   try {
@@ -52,7 +53,6 @@ exports.getNote = async (req, res) => {
 
 exports.postNote = async (req, res) => {
   const note = req.body
-  console.log(req.body)
   if (!verifyToken(req.headers.authorization)) {
     return res.status(500).json({ error: `Authentication was unsuccessful!` })
   }
@@ -74,11 +74,12 @@ exports.editNote = async (req, res) => {
   if (!verifyToken(req.headers.authorization)) {
     return res.status(500).json({ error: `Authentication was unsuccessful!` })
   }
+
   try {
     const result = await client
       .db("app_notes")
       .collection("notes")
-      .updateOne({ _id: req.params.id }, { $set: req.body })
+      .updateOne({ _id: ObjectID(req.params.id) }, { $set: req.body })
     return res.json(result.ok)
   } catch (e) {
     console.log(`Couldn't put: ${e}`)
@@ -87,20 +88,31 @@ exports.editNote = async (req, res) => {
 }
 
 exports.deleteNote = async (req, res) => {
-  console.log(req)
+  if (!verifyToken(req.headers.authorization)) {
+    return res.status(500).json({ error: `Authentication was unsuccessful!` })
+  }
+
   const result = await client
     .db("app_notes")
     .collection("notes")
     .deleteOne({
-      _id: req.params.id
+      _id: ObjectID(req.params.id)
     })
-  if (result) {
+  if (result.deletedCount) {
     console.log(
-      `Deleted a note in the collection with the id '${req.params.id}':`
+      `Deleted a note in the collection with the id '${req.params.id}'`
     )
-    return result.deletedCount
-  } else {
+    return res
+      .status(200)
+      .json({
+        status: `Deleted a note in the collection with the id '${req.params.id}'`
+      })
+  } else if (result.deletedCount == 0) {
     console.log(`No note found with the id '${req.params.id}'`)
+    return res
+      .status(200)
+      .json({ error: `No note found with the id '${req.params.id}'` })
+  } else {
     return res.status(500).json({ error: "something went wrong" })
   }
 }
