@@ -14,6 +14,7 @@ exports.getAllNotes = async (req, res) => {
     return res.json(result)
   } catch (e) {
     console.log(`Couldn't get: ${e}`)
+    return res.status(500).json({ error: "something went wrong" })
   }
 }
 
@@ -32,6 +33,7 @@ exports.getAllNotesForUser = async (req, res) => {
     return res.json(result)
   } catch (e) {
     console.log(`Couldn't get: ${e}`)
+    return res.status(500).json({ error: "something went wrong" })
   }
 }
 
@@ -102,11 +104,9 @@ exports.deleteNote = async (req, res) => {
     console.log(
       `Deleted a note in the collection with the id '${req.params.id}'`
     )
-    return res
-      .status(200)
-      .json({
-        status: `Deleted a note in the collection with the id '${req.params.id}'`
-      })
+    return res.status(200).json({
+      status: `Deleted a note in the collection with the id '${req.params.id}'`
+    })
   } else if (result.deletedCount == 0) {
     console.log(`No note found with the id '${req.params.id}'`)
     return res
